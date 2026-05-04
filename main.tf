@@ -23,14 +23,5 @@ provider "aws" {
 }
 
 resource "aws_s3_bucket" "mi_bucket" {
-  bucket = "bucket-tarea"
-}
-
-resource "aws_s3_bucket" "mi_otro_bucket" {
-  bucket = "bucket-tarea2-nuevo"
-}
-
-module "mi_modulo_s3" {
-  source      = "./modules/mi-recurso"
-  bucket_name = "bucket-modulo-tarea4"
+  bucket = "bucket-tarea5"
 }
