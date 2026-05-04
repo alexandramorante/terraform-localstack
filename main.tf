@@ -21,7 +21,3 @@ provider "aws" {
     s3 = "http://localhost:4566"
   }
 }
-
-resource "aws_s3_bucket" "mi_bucket" {
-  bucket = "bucket-tarea5"
-}
