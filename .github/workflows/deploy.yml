@@ -9,20 +9,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
-    services:
-      localstack:
-        image: localstack/localstack:latest
-        ports:
-          - 4566:4566
-        env:
-          SERVICES: s3
-          DEBUG: 1
-        options: >-
-          --health-cmd="curl -f http://localhost:4566/health || exit 1"
-          --health-interval=5s
-          --health-timeout=5s
-          --health-retries=20
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -30,15 +16,24 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
 
+      - name: Start LocalStack manually
+        run: |
+          docker run -d --name localstack \
+            -p 4566:4566 \
+            -e SERVICES=s3 \
+            -e DEBUG=1 \
+            localstack/localstack
+
       - name: Wait for LocalStack to be ready
         run: |
           echo "Esperando a que LocalStack esté listo..."
-          for i in {1..20}; do
-            if curl -s http://localhost:4566/health | grep '"s3": "running"' > /dev/null; then
+          for i in {1..30}; do
+            STATUS=$(curl -s http://localhost:4566/health | jq -r '.services.s3')
+            if [ "$STATUS" = "running" ]; then
               echo "LocalStack está listo."
               break
             fi
-            echo "Esperando... ($i/20)"
+            echo "Aún no está listo... ($i/30)"
             sleep 3
           done
 
@@ -50,3 +45,4 @@ jobs:
 
       - name: Terraform Apply
         run: terraform apply -auto-approve
+
