@@ -1,4 +1,4 @@
-name: Despliegue de Terraform
+name: Terraform Deploy
 
 on:
   push:
@@ -24,13 +24,25 @@ jobs:
           --health-retries=20
 
     steps:
-      - name: Revisar repo
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Configurar Terraform
+      - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
 
-      - name: Iniciar Terraform
+      - name: Wait for LocalStack to be ready
+        run: |
+          echo "Esperando a que LocalStack esté listo..."
+          for i in {1..20}; do
+            if curl -s http://localhost:4566/health | grep '"s3": "running"' > /dev/null; then
+              echo "LocalStack está listo."
+              break
+            fi
+            echo "Esperando... ($i/20)"
+            sleep 3
+          done
+
+      - name: Terraform Init
         run: terraform init
 
       - name: Terraform Plan
